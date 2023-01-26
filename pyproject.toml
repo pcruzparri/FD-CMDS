@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fd-cmds"
+name = "FD-CMDS"
 version = "0.1.0"
 description = "FD-CMDS is a software package for simulating coherent multidimensinal spectra from expressions in the frequency domain."
 authors = ["pcruzparri <peter.cruzparrilla@gmail.com>"]

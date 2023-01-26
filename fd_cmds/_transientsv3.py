@@ -1,19 +1,16 @@
 # imports
 import numpy as np
-#import asyncio
 
 # useful constants
 c = 2.998e8  # in m/s
 
 # useful functions
 
-
 def wntohz(wn):
     return wn*c*100*2*np.pi
 
 
 # modeling functions
-
 
 def hs(x):
     return np.heaviside(x, 1)
