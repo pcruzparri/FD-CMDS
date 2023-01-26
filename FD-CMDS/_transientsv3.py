@@ -82,4 +82,3 @@ def bra_emis(rabi_jk,
              t):
     return -1J/2*rabi_jk*((np.exp(-1J*(delta_ik-omega)*t)-np.exp(-1J*delta_ij*t))
                           / (omega_kj+omega-1J*(gamma_ij-gamma_ik)))
-

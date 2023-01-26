@@ -28,7 +28,7 @@ exp.set_pulse_freqs([0, 0, omegas[2]])
 
 w1, w2, width1, width2 = omegas[0], omegas[1], 200, 200
 scan_dims = [w1, w2, width1, width2]
-shape = (40, 40)
+shape = (20, 20)
 
 n_threads = 20 #ensure it is multiple of w2 scan width
 
@@ -53,7 +53,7 @@ if mp and n_threads <= os.cpu_count() and __name__ == "__main__":
     t1 = time.time()
     processes = []
     for ind, sub in enumerate(subplots):
-        process = Process(target=sub.dove_ir_1_freq_scan, args=(scan_dims[ind], shapes[ind],), kwargs={'queue':q})
+        process = Process(target=sub.dove_ir_2_freq_scan, args=(scan_dims[ind], shapes[ind],), kwargs={'queue':q})
         processes.append(process)
         process.start()
     while not q.full():
@@ -74,5 +74,5 @@ if mp and n_threads <= os.cpu_count() and __name__ == "__main__":
 
 
 elif not mp:
-    exp.dove_ir_1_freq_scan(scan_dims, shape)
+    exp.dove_ir_2_freq_scan(scan_dims, shape)
     exp.plot()
