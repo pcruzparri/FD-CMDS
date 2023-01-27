@@ -78,7 +78,7 @@ class Experiment:
         :return: output coherence amplitude
         """
 
-        signs, orderings = np.sign(self.pm), np.abs(self.pm)
+        signs, orderings = np.sign(self.pm), np.abs(self.pm)-1
         GROUND_STATE_GAMMA = _trans.wntohz(1e-18)
 
         t1 = self.transitions[0](self.rabis[orderings[0]],
@@ -126,6 +126,7 @@ class Experiment:
                                self.gammas[orderings[2]],
                                np.linspace(0, self.times[5]-self.times[4],
                                            int((self.times[5]-self.times[4])*time_int)+1))
+                                           
         coeff = t1*fid1*t2*fid2
         out_field = coeff*t3
         return np.sum(np.real(out_field*np.conjugate(out_field)))
