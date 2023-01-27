@@ -24,15 +24,23 @@ pws = [pw1, pw2, pw3]
 exp.set_pws(pws)
 exp.set_times()
 exp.set_pulse_freqs([2253, 3164, omegas[2]])
-exp.set_scan_range([200, 200])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-0, 1, 2])
 
 shape = (20, 20)
 
-exp.compute()
+e = exp.compute()
+print(e)
 
+w1_scan = np.linspace(-200, 200, 100)
+out_scan = []
+for i in w1_scan:
+    print(i)
+    exp.set_pulse_freqs([i, 3164, omegas[2]])
+    out_scan.append(exp.compute())
 
+plt.plot(w1_scan, out_scan)
+plt.show()
 
 """
 n_threads = 20 #ensure it is multiple of w2 scan width

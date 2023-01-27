@@ -2,10 +2,9 @@ __all__ = ['Experiment']
 
 import _transientsv3 as _trans
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-class Experiment():
+class Experiment:
     def __init__(self, omegas, gammas, rabis, delays=[], pws=[], times=[]):
         self.omegas = list(map(_trans.wntohz, omegas))
         self.gammas = list(map(_trans.wntohz, gammas))
@@ -55,6 +54,7 @@ class Experiment():
                                self.pulse_freqs[1]+scan_ranges[1]]
         else: 
             print('Not Completed. Specify pulse freqs first.')
+
     def get_scan_range(self):
         return self.scan_range
 
@@ -83,7 +83,7 @@ class Experiment():
 
         t1 = self.transitions[0](self.rabis[orderings[0]],
                                _trans.delta_ij(0, GROUND_STATE_GAMMA),
-                               _trans.delta_ij(signs[0]*self.omegas[orderings[0]], self.gammas[0]), #note: these are coherence gammas
+                               _trans.delta_ij(signs[0]*self.omegas[orderings[0]], self.gammas[orderings[0]]), #note: these are coherence gammas
                                self.pulse_freqs[orderings[0]],
                                signs[0]*self.omegas[orderings[0]],
                                GROUND_STATE_GAMMA,
@@ -95,7 +95,7 @@ class Experiment():
 
         t2 = self.transitions[1](self.rabis[orderings[1]],
                                _trans.delta_ij(signs[0]*self.omegas[orderings[0]],
-                                               self.gammas[orderings[1]]),
+                                               self.gammas[orderings[0]]),
                                _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
                                signs[0]*self.pulse_freqs[orderings[0]] \
@@ -109,7 +109,7 @@ class Experiment():
                                           + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
                           np.linspace(self.times[4] - self.times[3],
                                       self.times[5] - self.times[3],
-                                      int((self.times[5] - self.times[4]) * time_int) + 1))
+                                      int((self.times[5] - self.times[4]) * time_int)+1))
         t3 = self.transitions[2](self.rabis[orderings[2]],
                                _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
@@ -125,7 +125,7 @@ class Experiment():
                                self.gammas[orderings[1]],
                                self.gammas[orderings[2]],
                                np.linspace(0, self.times[5]-self.times[4],
-                                           int((self.times[5]-self.times[4])*1e15*time_int)))
+                                           int((self.times[5]-self.times[4])*time_int)+1))
         coeff = t1*fid1*t2*fid2
         out_field = coeff*t3
         return np.sum(np.real(out_field*np.conjugate(out_field)))
