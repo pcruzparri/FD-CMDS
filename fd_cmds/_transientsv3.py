@@ -9,6 +9,9 @@ c = 2.998e8  # in m/s
 def wntohz(wn):
     return wn*c*100*2*np.pi
 
+def hztown(hz):
+    return hz/c/100/2/np.pi
+
 
 # modeling functions
 

@@ -47,7 +47,7 @@ class Experiment:
         self.pulse_freqs = list(map(_trans.wntohz, freqs))
 
     def get_pulse_freqs(self):
-        return self.pulse_freqs
+        return self.pulse_freqs, list(map(_trans.hztown, self.pulse_freqs))
 
     def set_scan_range(self, scan_ranges):
         if self.pulse_freqs:
@@ -73,7 +73,7 @@ class Experiment:
     def get_pm(self):
         return self.pm
     
-    def compute(self, time_int=100e15):
+    def compute(self, time_int=100):
         """
         :param time_int:
         :return:
@@ -113,7 +113,7 @@ class Experiment:
                                           + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
                           np.linspace(self.times[4] - self.times[3],
                                       self.times[5] - self.times[3],
-                                      int((self.times[5] - self.times[4]) * time_int)+1))
+                                      int((self.times[5] - self.times[4]) * time_int * 1e15)+1))
         t3 = self.transitions[2](self.rabis[orderings[2]],
                                  _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                  + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
@@ -129,7 +129,7 @@ class Experiment:
                                  self.gammas[orderings[1]],
                                  self.gammas[orderings[2]],
                                  np.linspace(0, self.times[5]-self.times[4],
-                                             int((self.times[5]-self.times[4])*time_int)+1))
+                                             int((self.times[5]-self.times[4]) * time_int * 1e15)+1))
                                            
         coeff = t1*fid1*t2*fid2
         out_field = coeff*t3
