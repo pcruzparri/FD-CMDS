@@ -2,6 +2,7 @@ import _transientsv3 as _trans
 from Experiment import Experiment
 import matplotlib.pyplot as plt
 import numpy as np
+import timeit
 import os
 from multiprocessing import Process, Queue
 import time
@@ -12,12 +13,12 @@ gammas = [20, 50, 1000] #in wn for the coherences, not the individual states.
 rabis = [5, 8, 1000] #in wn for the coherences, by definition. 
 exp = Experiment(omegas, gammas, rabis)
 
-d1 = 0
-d2 = 0
+d1 = 200e-15
+d2 = 200e-15
 delays = [d1, d2]
 exp.set_delays(delays)
 
-pw1 = 500e-15
+pw1 = 100e-15
 pw2 = 500e-15
 pw3 = 500e-15
 pws = [pw1, pw2, pw3]
@@ -26,10 +27,9 @@ exp.set_times()
 exp.set_pulse_freqs([2253, 3164, omegas[2]])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
-
+#exp.draw(spacing=0.01)
 
 e = exp.compute()
-print(e)
 
 def f(w1,w2):
     omegas = [2253, 3164, 77000] #in wn for the individual states.
@@ -37,8 +37,8 @@ def f(w1,w2):
     rabis = [5, 8, 1000] #in wn for the coherences, by definition. 
     exp = Experiment(omegas, gammas, rabis)
 
-    d1 = 0
-    d2 = 0
+    d1 = 200e-15
+    d2 = 200e-15
     delays = [d1, d2]
     exp.set_delays(delays)
 
@@ -48,75 +48,36 @@ def f(w1,w2):
     pws = [pw1, pw2, pw3]
     exp.set_pws(pws)
     exp.set_times()
-    exp.set_pulse_freqs([w1*5+2100, w2*5+3000, omegas[2]])
-    exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
-    exp.set_pm([-1, 2, 3])
-    print(w1,w2)
+    exp.set_pulse_freqs([w1*30+1900, w2*30+2850, omegas[2]])
+    exp.set_transitions([_trans.ket_abs, _trans.bra_abs, _trans.ket_abs])
+    exp.set_pm([2, -1, 3])
+    print(w1, w2)
     return exp.compute()
-        
-matrix = np.fromfunction(np.vectorize(f), (40,40), dtype=float)
-plt.imshow(np.transpose(matrix))
-plt.show()
+
 
 
 """
-w1_scan = np.linspace(2200, 2300, 100)
-w2_scan = np.linspace(3000, 3200, 100)
+n=400
+t = timeit.Timer(lambda: f(2200,3300)).timeit(n)
+print(t/n)
+"""
+
+"""
+matrix = np.fromfunction(np.vectorize(f), (20, 20), dtype=int)
+plt.imshow(np.transpose(matrix), cmap='bwr', origin='lower')
+plt.colorbar()
+plt.show()
+"""
+
+"""
+w1_scan = np.linspace(1800, 2600, 81)
+w2_scan = np.linspace(2800, 3600, 81)
 out_scan = []
-for i in w2_scan:
+for i in w1_scan:
     print(i)
-    exp.set_pulse_freqs([2253, i, omegas[2]])
+    exp.set_pulse_freqs([i, 3164, omegas[2]])
     out_scan.append(exp.compute())
 
-plt.plot(w2_scan, out_scan)
+plt.plot(w1_scan, out_scan)
 plt.show()
-"""
-
-"""
-n_threads = 20 #ensure it is multiple of w2 scan width
-
-mp = False
-
-if mp and n_threads <= os.cpu_count() and __name__ == "__main__":
-    q = Queue(n_threads)
-    w2_range_points = np.linspace(w2-width2, w2+width2, n_threads*2+1)
-    scan_dims = [(w1, point, width1, w2_range_points[ind+1]-point)
-                 for ind, point in enumerate(w2_range_points) if ind % 2 == 1]
-    print(scan_dims)
-    shapes = [(shape[0], shape[1]//n_threads)]*n_threads
-    subplots = []
-    for thread in range(n_threads):
-        subexp = TransientOut(omegas, gammas, rabis)
-        subexp.set_delays(delays)
-        subexp.set_pws(pws)
-        subexp.set_times()
-        subexp.set_pulse_freqs([0, 0, omegas[2]])
-        subplots.append(subexp)
-
-    t1 = time.time()
-    processes = []
-    for ind, sub in enumerate(subplots):
-        process = Process(target=sub.dove_ir_2_freq_scan, args=(scan_dims[ind], shapes[ind],), kwargs={'queue':q})
-        processes.append(process)
-        process.start()
-    while not q.full():
-        time.sleep(1)
-    t2 = time.time()
-    print(f'took {t2-t1} seconds.')
-
-    results = list(q.get() for i in range(q.qsize()))
-    sort_res = [i[1] for i in sorted(results, key=lambda x: x[0])]
-    spectra = np.concatenate(sort_res)
-
-    plt.imshow(spectra, cmap='bwr', origin='lower', extent=(w1-width1,
-                                                            w1+width1,
-                                                            w2-width2,
-                                                            w2+width2))
-    plt.colorbar()
-    plt.show()
-
-
-elif not mp:
-    exp.dove_ir_2_freq_scan(scan_dims, shape)
-    exp.plot()
 """
