@@ -1,10 +1,9 @@
 __all__ = ['Experiment']
 
-import _transientsv3 as _trans
+from Transients import _transients as _trans
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from itertools import islice
 
 
 class Experiment:
@@ -93,7 +92,7 @@ class Experiment:
                                  GROUND_STATE_GAMMA,
                                  self.gammas[orderings[0]],
                                  self.times[1])
-        fid1 = _trans.fid(1,
+        fid1 = _trans.fid(t1,
                           _trans.delta_ij(self.omegas[orderings[0]], self.gammas[orderings[0]]),
                           self.times[3]-self.times[1])
 
@@ -107,8 +106,8 @@ class Experiment:
                                  signs[0]*self.omegas[orderings[0]] + signs[1]*self.omegas[orderings[1]],
                                  self.gammas[orderings[0]],
                                  self.gammas[orderings[1]],
-                                 self.times[3] - self.times[2])
-        fid2 = _trans.fid(1,
+                                 self.times[3] - self.times[2]) * fid1
+        fid2 = _trans.fid(t2,
                           _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                           + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
                           np.linspace(self.times[4] - self.times[3],
@@ -129,10 +128,10 @@ class Experiment:
                                  self.gammas[orderings[1]],
                                  self.gammas[orderings[2]],
                                  np.linspace(0, self.times[5]-self.times[4],
-                                             int((self.times[5]-self.times[4]) * time_int * 1e15)+1))
+                                             int((self.times[5]-self.times[4]) * time_int * 1e15)+1)) * fid2
                                            
         coeff = t1*fid1*t2*fid2
-        out_field = coeff*t3
+        out_field = t3
         return np.sum(np.real(out_field*np.conjugate(out_field)))
 
     def draw(self, spacing=1):

@@ -1,13 +1,6 @@
-import _transientsv3 as _trans
+from Transients import _transients as _trans
 from Experiment import Experiment
 from Scan import Scan
-import matplotlib.pyplot as plt
-import numpy as np
-import timeit
-import os
-from multiprocessing import Process, Queue
-import time
-
 
 omegas = [2253, 3164, 77000] #in wn for the individual states.
 gammas = [20, 50, 1000] #in wn for the coherences, not the individual states.
@@ -28,13 +21,15 @@ exp.set_times()
 exp.set_pulse_freqs([2253, 3164, omegas[2]])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
-exp.draw(spacing=0.01)
-#e = exp.compute()
+#exp.draw(spacing=0.01)
+#exp.compute()
+#e
 
 
-s1 = Scan(exp)
-s1.scan_1D(0, (2100, 2300), 31, 3164)
-s1.scan_1D(1, (3100, 3200), 21, 2254)
+#s1 = Scan(exp)
+#s1.scan_1d(0, (2100, 2300), 31, 3164)
+#s1.scan_1d(1, (3100, 3200), 21, 2254)
 
-s2 = Scan(exp)
-s2.scan_2D((2100, 2400), (3100, 3300), (31,21))
+
+#s2 = Scan(exp)
+#s2.scan_2d((2100, 2400), (3100, 3300), (31, 21))
