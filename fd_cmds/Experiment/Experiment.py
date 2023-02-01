@@ -130,9 +130,9 @@ class Experiment:
                                  np.linspace(0, self.times[5]-self.times[4],
                                              int((self.times[5]-self.times[4]) * time_int * 1e15)+1)) * fid2
                                            
-        coeff = t1*fid1*t2*fid2
-        out_field = t3
-        return np.sum(np.real(out_field*np.conjugate(out_field)))
+        #coeff = t1*fid1*t2*fid2
+        #out_field = t3
+        return np.sum(np.real(t3*np.conjugate(t3)))
 
     def draw(self, spacing=1):
         spacing *= 1e-15

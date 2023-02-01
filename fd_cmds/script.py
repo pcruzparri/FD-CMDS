@@ -2,19 +2,20 @@ from Transients import _transients as _trans
 from Experiment import Experiment
 from Scan import Scan
 
+print(1/_trans.wntohz(20))
 omegas = [2253, 3164, 77000] #in wn for the individual states.
 gammas = [20, 50, 1000] #in wn for the coherences, not the individual states.
-rabis = [5, 8, 1000] #in wn for the coherences, by definition. 
+rabis = [50, 80, 1000] #in wn for the coherences, by definition. 
 exp = Experiment(omegas, gammas, rabis)
 
-d1 = 200e-15
-d2 = 200e-15
+d1 = 0e-15
+d2 = 0e-15
 delays = [d1, d2]
 exp.set_delays(delays)
 
-pw1 = 500e-15
-pw2 = 500e-15
-pw3 = 500e-15
+pw1 = 1000e-15
+pw2 = 1000e-15
+pw3 = 1000e-15
 pws = [pw1, pw2, pw3]
 exp.set_pws(pws)
 exp.set_times()
