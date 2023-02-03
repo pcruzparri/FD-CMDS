@@ -3,7 +3,9 @@ __all__ = ['Experiment']
 from Transients import _transients as _trans
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from matplotlib.patches import Rectangle
+from matplotlib.widgets import Slider, Button
 
 
 class Experiment:
@@ -134,9 +136,11 @@ class Experiment:
         #out_field = t3
         return np.sum(np.real(t3*np.conjugate(t3)))
 
-    def draw(self, spacing=1):
+    def draw(self, spacing=1, **kwargs):
         spacing *= 1e-15
-        fig, ax = plt.subplots(layout='constrained')
+        fig = plt.figure()
+        gs = gridspec.GridSpec(11, 1)
+        #fig, ax = plt.subplots(layout='constrained')
 
         if self.times and self.pulse_freqs:
             time1 = np.arange(self.times[0], self.times[1], spacing)
@@ -197,30 +201,71 @@ class Experiment:
                                      self.gammas[orderings[2]],
                                      time3-time3[0]) * fid2[len(time1)+len(delay1)+len(time2)+len(delay2):
                                                             len(time_axis)]
-            plt.plot(time1, t1, color='b', alpha=0.5)
-            plt.plot(time_axis, fid1, color='b', alpha=0.5)
-            plt.plot(time2, t2, color='g', alpha=0.5)
-            plt.plot(time_axis, fid2, color='g', alpha=0.5)
-            plt.plot(time3, t3, color='r', alpha=0.5)
 
-            box_height = np.max(np.abs(t1))
-            ax.add_patch(Rectangle((time1[0], -box_height/2),
+            ax1 = fig.add_subplot(gs[0:5, :])
+            a = ax1.plot(time1, t1, color='b', alpha=0.5)
+            b = ax1.plot(time_axis, fid1, color='b', alpha=0.5)
+            c = ax1.plot(time2, t2, color='g', alpha=0.5)
+            d = ax1.plot(time_axis, fid2, color='g', alpha=0.5)
+            e = ax1.plot(time3, t3, color='r', alpha=0.5)
+
+
+            '''box_height = np.max(np.abs(t1))
+            f = ax.add_patch(Rectangle((time1[0], -box_height/2),
                                    self.times[1] - self.times[0],
                                    box_height,
                                    alpha=0.2,
                                    color='b'))
-            ax.add_patch(Rectangle((time2[0], -box_height/2),
+            g = ax.add_patch(Rectangle((time2[0], -box_height/2),
                                    self.times[3] - self.times[2],
                                    box_height,
                                    alpha=0.2,
                                    color='g'))
-            ax.add_patch(Rectangle((time3[0], -box_height/2),
+            h = ax.add_patch(Rectangle((time3[0], -box_height/2),
                                    self.times[5] - self.times[4],
                                    box_height,
                                    alpha=0.2,
                                    color='r'))
-            ax.legend(('Pulse 1', 'Pulse 2', 'Pulse 3'))
+            i = ax.legend(('Pulse 1', 'Pulse 2', 'Pulse 3'))'''
 
         else:
             raise AttributeError('Experiment times and/or pulse frequencies have to be defined.')
+
+        if ('_gui', True) in kwargs.items():
+            times = [time1, time_axis, time2, time_axis, time3]
+            outs = [t1, fid1, t2, fid2, t3]
+            return times, outs
+
+        if not ('_gui', True) in kwargs.items():
+            d1_box = fig.add_subplot(gs[6, :])
+            d2_box = fig.add_subplot(gs[7, :])
+            pw1_box = fig.add_subplot(gs[8, :])
+            pw2_box = fig.add_subplot(gs[9, :])
+            pw3_box = fig.add_subplot(gs[10, :])
+
+            d1_slider = Slider(d1_box, 'd1', 0.0, 1e-12, self.delays[0], valstep=10e-15)
+            d2_slider = Slider(d2_box, 'd2', 0.0, 1e-12, self.delays[1], valstep=10e-15)
+            pw1_slider = Slider(pw1_box, 'pw1', 10e-15, 1e-12, self.pws[0], valstep=10e-15)
+            pw2_slider = Slider(pw2_box, 'pw2', 10e-15, 1e-12, self.pws[1], valstep=10e-15)
+            pw3_slider = Slider(pw3_box, 'pw3', 10e-15, 1e-12, self.pws[2], valstep=10e-15)
+
+            def update(val):
+                d1 = d1_slider.val
+                d2 = d2_slider.val
+                pw1 = pw1_slider.val
+                pw2 = pw2_slider.val
+                pw3 = pw3_slider.val
+                self.set_pws([pw1, pw2, pw3])
+                self.set_delays([d1, d2])
+                self.set_times()
+                updated = self.draw(_gui=True)
+                #ax1.set_xlim(0, updated[0][-1][-1])
+                for ind, prev_plot in enumerate([a, b, c, d, e]):
+                    prev_plot[0].set_data(updated[0][ind], updated[1][ind])
+
+            d1_slider.on_changed(update)
+            d2_slider.on_changed(update)
+            pw1_slider.on_changed(update)
+            pw2_slider.on_changed(update)
+            pw3_slider.on_changed(update)
         plt.show()

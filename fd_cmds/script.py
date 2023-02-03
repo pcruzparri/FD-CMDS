@@ -20,7 +20,7 @@ exp.set_times()
 exp.set_pulse_freqs([2253, 3164, omegas[2]])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
-#exp.draw(spacing=0.01)
+exp.draw(spacing=0.01)
 #exp.compute()
 #e
 
