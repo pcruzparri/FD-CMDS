@@ -20,12 +20,12 @@ exp.set_times()
 exp.set_pulse_freqs([2253, 3164, omegas[2]])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
-exp.draw(spacing=0.01)
+#exp.draw(spacing=0.01)
 #exp.compute()
 #e
 
 
-s1 = Scan(exp)
+#s1 = Scan(exp)
 #s1.scan_1d_freq(0, (2100, 2300), 31, 3164)
 #s1.scan_1d_freq(1, (3100, 3200), 21, 2254)
 #s1.scan_1d_delay(0, (0, 500), 26, 100)

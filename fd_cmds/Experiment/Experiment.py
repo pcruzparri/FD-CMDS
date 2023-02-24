@@ -10,9 +10,9 @@ from matplotlib.widgets import Slider, Button
 
 class Experiment:
     def __init__(self, omegas, gammas, rabis, delays=[], pulse_widths=[], times=[]):
-        self.omegas = list(map(_trans.wntohz, omegas))
-        self.gammas = list(map(_trans.wntohz, gammas))
-        self.rabis = list(map(_trans.wntohz, rabis))
+        self.omegas = list(map(_trans.wn2Hz, omegas))
+        self.gammas = list(map(_trans.wn2Hz, gammas))
+        self.rabis = list(map(_trans.wn2Hz, rabis))
         self.delays = delays
         self.pws = pulse_widths
         self.times = times
@@ -29,7 +29,7 @@ class Experiment:
     def get_pws(self):
         return self.pws
 
-    def set_times(self):
+    def set_times(self, time_int=100):
         if len(self.pws)>len(self.delays)>0:
             t0 = 0
             t1 = round(t0+self.pws[0], 18)
@@ -37,7 +37,12 @@ class Experiment:
             t3 = round(t2+self.pws[1], 18)
             t4 = t3+self.delays[1]
             t5 = t4+self.pws[2]
-            self.times = [t0, t1, t2, t3, t4, t5]
+            self.times= [t0, t1, t2, t3, t4, t5]
+            self.tsteps = np.linspace(t0, t5, int((t5-t0) * time_int * 1e15)+1)
+            tdp1 = _trans.pulse(t0, t1, self.tsteps) # time dependence of pulse 1 
+            tdp2 = _trans.pulse(t2, t3, self.tsteps) # time dependence of pulse 2 
+            tdp3 = _trans.pulse(t4, t5+1e-15, self.tsteps) # time dependence of pulse 3
+            self.tdps = np.array([tdp1,tdp2,tdp3])
         else: 
             print('Invalid pulse width and/or delay inputs.')
 
@@ -45,17 +50,17 @@ class Experiment:
         return self.times
 
     def set_pulse_freqs(self, freqs):
-        self.pulse_freqs = list(map(_trans.wntohz, freqs))
+        self.pulse_freqs = list(map(_trans.wn2Hz, freqs))
 
     def get_pulse_freqs(self):
-        return self.pulse_freqs, list(map(_trans.hztown, self.pulse_freqs))
+        return self.pulse_freqs, list(map(_trans.Hz2wn, self.pulse_freqs))
 
     def set_scan_range(self, scan_ranges):
         if self.pulse_freqs:
-            self.scan_range = [self.pulse_freqs[0]-scan_ranges[0],
-                               self.pulse_freqs[0]+scan_ranges[0],
-                               self.pulse_freqs[1]-scan_ranges[1],
-                               self.pulse_freqs[1]+scan_ranges[1]]
+            self.scan_range = np.array([self.pulse_freqs[0]-scan_ranges[0],
+                                        self.pulse_freqs[0]+scan_ranges[0],
+                                        self.pulse_freqs[1]-scan_ranges[1],
+                                        self.pulse_freqs[1]+scan_ranges[1]])
         else: 
             print('Not Completed. Specify pulse freqs first.')
 
@@ -63,18 +68,23 @@ class Experiment:
         return self.scan_range
 
     def set_transitions(self, transitions):
-        self.transitions = transitions
+        self.transitions = np.array(transitions)
 
     def get_transitions(self):
         return [t.__name__ for t in self.transitions]
     
     def set_pm(self, phasematching):
-        self.pm = phasematching    
+        self.pm = np.array(phasematching)
+        signs, orderings = np.sign(self.pm), np.abs(self.pm)-1
+        self.omega_t = [signs[0]*self.omegas[orderings[0]]*self.tdps[0]+
+                        signs[1]*self.omegas[orderings[1]]*self.tdps[1]+
+                        signs[2]*self.omegas[orderings[2]]*self.tdps[2]]
+        print(len(self.omega_t))
     
     def get_pm(self):
         return self.pm
     
-    def compute(self, time_int=100):
+    def _compute(self):
         """
         :param time_int:
         :return:
@@ -93,50 +103,43 @@ class Experiment:
                                  signs[0] * self.omegas[orderings[0]],
                                  GROUND_STATE_GAMMA,
                                  self.gammas[orderings[0]],
-                                 self.times[1])
+                                 self.tsteps*self.tdp1)
+        print(t1)
         fid1 = _trans.fid(t1,
                           _trans.delta_ij(self.omegas[orderings[0]], self.gammas[orderings[0]]),
-                          self.times[3]-self.times[1])
+                          self.tsteps-self.times[1])*_trans.hs(self.tsteps-self.times[1])
 
         t2 = self.transitions[1](self.rabis[orderings[1]],
                                  _trans.delta_ij(signs[0]*self.omegas[orderings[0]],
                                                  self.gammas[orderings[0]]),
                                  _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                  + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
-                                 signs[0]*self.pulse_freqs[orderings[0]] \
-                                 + signs[1]*self.pulse_freqs[orderings[1]],
-                                 signs[0]*self.omegas[orderings[0]] + signs[1]*self.omegas[orderings[1]],
+                                 signs[1]*self.pulse_freqs[orderings[1]],
+                                 signs[1]*self.omegas[orderings[1]],
                                  self.gammas[orderings[0]],
                                  self.gammas[orderings[1]],
-                                 self.times[3] - self.times[2]) * fid1
+                                 self.tsteps*self.tdp2-self.times[2]) * fid1
         fid2 = _trans.fid(t2,
                           _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                           + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
-                          np.linspace(self.times[4] - self.times[3],
-                                      self.times[5] - self.times[3],
-                                      int((self.times[5] - self.times[4]) * time_int * 1e15)+1))
+                                          self.tsteps-self.times[3])*_trans.hs(self.tsteps-self.times[3])
         t3 = self.transitions[2](self.rabis[orderings[2]],
                                  _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                  + signs[1]*self.omegas[orderings[1]], self.gammas[orderings[1]]),
                                  _trans.delta_ij(signs[0]*self.omegas[orderings[0]]
                                                  + signs[1]*self.omegas[orderings[1]]
                                                  + signs[2]*self.omegas[orderings[2]], self.gammas[orderings[2]]),
-                                 signs[0]*self.pulse_freqs[orderings[0]]
-                                 + signs[1]*self.pulse_freqs[orderings[1]]
-                                 + signs[2]*self.pulse_freqs[orderings[2]],
-                                 signs[0]*self.omegas[orderings[0]]
-                                 + signs[1]*self.omegas[orderings[1]]
-                                 + signs[2]*self.omegas[orderings[2]],
+                                 signs[2]*self.pulse_freqs[orderings[2]],
+                                 signs[2]*self.omegas[orderings[2]],
                                  self.gammas[orderings[1]],
                                  self.gammas[orderings[2]],
-                                 np.linspace(0, self.times[5]-self.times[4],
-                                             int((self.times[5]-self.times[4]) * time_int * 1e15)+1)) * fid2
+                                 self.tsteps*self.tdp3-self.times[4]) * fid2
                                            
         #coeff = t1*fid1*t2*fid2
         #out_field = t3
         return np.sum(np.real(t3*np.conjugate(t3)))
 
-    def draw(self, spacing=1, **kwargs):
+    def _draw(self, spacing=1, **kwargs):
         spacing *= 1e-15
         fig = plt.figure()
         gs = gridspec.GridSpec(11, 1)
