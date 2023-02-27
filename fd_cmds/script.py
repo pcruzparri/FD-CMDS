@@ -17,16 +17,11 @@ pw2 = 500e-15
 pw3 = 500e-15
 exp.set_pws([pw1, pw2, pw3])
 exp.set_times()
-exp.set_pulse_freqs([2253, 3164, omegas[2]])
-exp.set_transitions([_trans.ket_abs, _trans.ket_abs, _trans.ket_abs])
+exp.set_pulse_freqs([2200, 3100, omegas[2]])
+exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
-#exp.draw(spacing=0.01)
 exp.compute()
-#e
 print(exp.times)
-a = exp.timedparams(501e-15, where=[1, 1, 1])
-print(_trans.Hz2wn(a[0]),
-      _trans.Hz2wn(a[1]),)
 
 
 #s1 = Scan(exp)
@@ -34,7 +29,6 @@ print(_trans.Hz2wn(a[0]),
 #s1.scan_1d_freq(1, (3100, 3200), 21, 2254)
 #s1.scan_1d_delay(0, (0, 500), 26, 100)
 #s1.scan_1d_delay(1, (0, 500), 26, 100)
-
 
 
 #s2 = Scan(exp)

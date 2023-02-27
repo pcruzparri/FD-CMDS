@@ -101,42 +101,47 @@ class Experiment:
         fid = [fid1*self.signs[0]*self.omegas[self.orderings[0]],
                fid2*self.signs[1]*self.omegas[self.orderings[1]],
                0]
-        return np.sum(driven, where=where), np.sum(np.add(driven, fid), where=where)
+        return np.sum(driven, where=where)
 
     def compute(self):
         t1 = lambda t: self.transitions[0](self.rabis[self.orderings[0]],
                                            self.pulse_freqs[self.orderings[0]],
                                            0,
-                                           self.signs*self.omegas[self.orderings[0]],
+                                           self.signs[0]*self.omegas[self.orderings[0]],
                                            self.gammas[self.orderings[0]],
                                            self.times[0],
                                            self.times[1],
                                            t)
 
         t2 = lambda t: self.transitions[1](self.rabis[self.orderings[1]],
-                                           self.timedparams(t, where=[1, 1, 0])[0],
-                                           self.timedparams(t, where=[1, 0, 0])[1],
-                                           self.signs[1]*self.omegas[self.orderings[1]],
+                                           self.timedparams(t, where=[1, 1, 0]),
+                                           self.signs[0]*self.omegas[self.orderings[0]],
+                                           self.signs[0]*self.omegas[self.orderings[0]]
+                                           + self.signs[1]*self.omegas[self.orderings[1]],
                                            self.gammas[self.orderings[1]],
                                            self.times[2],
                                            self.times[3],
                                            t)
 
-        t3 = lambda t: self.transitions[1](self.rabis[self.orderings[2]],
-                                           self.timedparams(t, where=[1, 1, 1])[0],
-                                           self.timedparams(t, where=[1, 1, 0])[1],
-                                           self.signs[2]*self.omegas[self.orderings[2]],
+        t3 = lambda t: self.transitions[2](self.rabis[self.orderings[2]],
+                                           self.timedparams(t, where=[1, 1, 1]),
+                                           self.signs[0]*self.omegas[self.orderings[0]]
+                                           + self.signs[1]*self.omegas[self.orderings[1]],
+                                           self.signs[0]*self.omegas[self.orderings[0]]
+                                           + self.signs[1]*self.omegas[self.orderings[1]]
+                                           + self.signs[2]*self.omegas[self.orderings[2]],
                                            self.gammas[self.orderings[2]],
                                            self.times[4],
                                            self.times[5],
                                            t)
 
         times = np.linspace(self.times[0], self.times[5], int((self.times[5]-self.times[0])*100e15))
-        amps = [t1(i) for i in times]
-        plt.plot(times, amps)
+        amps1 = [t1(i) for i in times]
+        amps2 = [t2(i) for i in times]
+        amps21 = [t1(i)*t2(i) for i in times]
+        plt.plot(times, amps1)
+        plt.plot(times, amps21)
         plt.show()
-
-
 
 
     def _draw(self, spacing=1, **kwargs):
