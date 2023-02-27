@@ -8,8 +8,8 @@ gammas = [20, 50, 1000] #in wn for the coherences, not the individual states.
 rabis = [50, 80, 1000] #in wn for the coherences, by definition. 
 exp = Experiment(omegas, gammas, rabis)
 
-d1 = 0e-15
-d2 = 0e-15
+d1 = -250e-15
+d2 = -300e-15
 exp.set_delays([d1, d2])
 
 pw1 = 500e-15
@@ -21,8 +21,12 @@ exp.set_pulse_freqs([2253, 3164, omegas[2]])
 exp.set_transitions([_trans.bra_abs, _trans.ket_abs, _trans.ket_abs])
 exp.set_pm([-1, 2, 3])
 #exp.draw(spacing=0.01)
-#exp.compute()
+exp.compute()
 #e
+print(exp.times)
+a = exp.timedparams(501e-15, where=[1, 1, 1])
+print(_trans.Hz2wn(a[0]),
+      _trans.Hz2wn(a[1]),)
 
 
 #s1 = Scan(exp)

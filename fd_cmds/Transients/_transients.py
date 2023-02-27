@@ -27,21 +27,23 @@ def Hz2wn(hz):
 # modeling functions
 
 def Hs(x):
-    return np.heaviside(x, 1)
+    return np.heaviside(x, 0)
 
 
 def delta_ij(omega_ij, gamma_ij):
-    return omega_ij-1J*gamma_ij
+    return omega_ij - 1J*gamma_ij
 
 
 def pulse(ti, tf, t):
-    return Hs(t-ti)-Hs(t-tf)
+    return Hs(t-ti) - Hs(t-tf)
 
 
 def fid(rho0_ij,
-        delta_ij,
+        omega_ij,
+        gamma_ij,
+        ti,
         t):
-    return rho0_ij*np.exp(-1J*delta_ij*t)
+    return rho0_ij*np.exp(-1J * delta_ij(omega_ij, gamma_ij) * t) * Hs(t-ti)
 
 
 def ket_abs(rabi_ik,
@@ -49,10 +51,12 @@ def ket_abs(rabi_ik,
             omega_kj,
             omega_ij,
             gamma_ij,
+            ti,
+            tf,
             t):
     rho_ij = 0.5*rabi_ik*((np.exp(-1J * (omega_kj+omega) * t) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * t))
-                           / (delta_ij(omega_ij, gamma_ij) - omega - omega_kj))
-    return rho_ij
+                           / (delta_ij(omega_ij, gamma_ij) - omega - omega_kj)) * pulse(ti, tf, t)
+    return rho_ij + fid(ket_abs(rabi_ik, omega, omega_kj, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, tf, t)
 
 
 def ket_emis(rabi_ik,
@@ -60,10 +64,12 @@ def ket_emis(rabi_ik,
              omega_kj,
              omega_ij,
              gamma_ij,
+             ti,
+             tf,
              t):
     rho_ij = 0.5*rabi_ik*((np.exp(-1J * (omega_kj-omega) * t) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * t))
-                           / (delta_ij(omega_ij, gamma_ij) + omega - omega_kj))
-    return rho_ij
+                           / (delta_ij(omega_ij, gamma_ij) + omega - omega_kj)) * pulse(ti, tf, t)
+    return rho_ij + fid(ket_emis(rabi_ik, omega, omega_kj, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, tf, t)
 
 
 def bra_abs(rabi_jk,
@@ -71,10 +77,12 @@ def bra_abs(rabi_jk,
             omega_ik,
             omega_ij,
             gamma_ij,
+            ti,
+            tf,
             t):
     rho_ij = -0.5*rabi_jk*((np.exp(-1J * (omega_ik-omega) * t) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * t))
-                           / (delta_ij(omega_ij, gamma_ij) + omega - omega_ik))
-    return rho_ij
+                           / (delta_ij(omega_ij, gamma_ij) + omega - omega_ik)) * pulse(ti, tf, t)
+    return rho_ij + fid(bra_abs(rabi_jk, omega, omega_ik, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, tf, t)
 
 
 def bra_emis(rabi_jk,
@@ -82,7 +90,9 @@ def bra_emis(rabi_jk,
              omega_ik,
              omega_ij,
              gamma_ij,
+             ti,
+             tf,
              t):
     rho_ij = -0.5*rabi_jk*((np.exp(-1J * (omega_ik+omega) * t) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * t))
-                           / (delta_ij(omega_ij, gamma_ij) - omega - omega_ik))
-    return rho_ij
+                           / (delta_ij(omega_ij, gamma_ij) - omega - omega_ik)) * pulse(ti, tf, t)
+    return rho_ij + fid(bra_emis(rabi_jk, omega, omega_ik, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, tf, t)
