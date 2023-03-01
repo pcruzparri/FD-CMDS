@@ -2,6 +2,7 @@ __all__ = ['Experiment']
 
 from Transients import _transients as _trans
 import numpy as np
+from scipy.integrate import quadrature
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import Rectangle
@@ -111,7 +112,11 @@ class Experiment:
                                            self.gammas[self.orderings[0]],
                                            self.times[0],
                                            self.times[1],
-                                           t)
+                                           t) * _trans.pulse(self.times[0], self.times[1], t) 
+        fid1 = lambda t: _trans.fid(t1(self.times[1]), 
+                                    self.signs[0]*self.omegas[self.orderings[0]],
+                                    self.gammas[self.orderings[0]], 
+                                    t-self.times[1]) * _trans.Hs(t-self.times[1]) 
 
         t2 = lambda t: self.transitions[1](self.rabis[self.orderings[1]],
                                            self.timedparams(t, where=[1, 1, 0]),
@@ -122,6 +127,11 @@ class Experiment:
                                            self.times[2],
                                            self.times[3],
                                            t)
+        fid2 = lambda t: _trans.fid(t2(self.times[3]), 
+                                    self.signs[0]*self.omegas[self.orderings[0]]
+                                    + self.signs[1]*self.omegas[self.orderings[1]],
+                                    self.gammas[self.orderings[1]],
+                                    t-self.times[3]) * _trans.Hs(t-self.times[3]) 
 
         t3 = lambda t: self.transitions[2](self.rabis[self.orderings[2]],
                                            self.timedparams(t, where=[1, 1, 1]),
@@ -135,14 +145,16 @@ class Experiment:
                                            self.times[5],
                                            t)
 
-        times = np.linspace(self.times[0], self.times[5], int((self.times[5]-self.times[0])*100e15))
-        amps1 = [t1(i) for i in times]
-        amps2 = [t2(i) for i in times]
-        amps21 = [t1(i)*t2(i) for i in times]
-        plt.plot(times, amps1)
-        plt.plot(times, amps21)
+        times = np.linspace(self.times[0], self.times[5], int((self.times[5]-self.times[0])*10e15))
+        amps1 = [t1(i)+fid1(i) for i in times]
+        amps21 = [(t1(i)+fid1(i))*(t2(i)+fid2(i)) for i in times]
+        amps321 = [(t1(i)+fid1(i))*(t2(i)+fid2(i))*t3(i) for i in times]
+        plt.plot(times, amps1, color='k', alpha=0.50)
+        plt.plot(times, amps21, color='r', alpha=0.75)
+        plt.plot(times, amps321, color='b', alpha=0.75)
         plt.show()
-
+        """return quadrature(lambda t: (t1(t)+fid1(t))*(t2(t)+fid2(t))*t3(t) \
+                   * np.conjugate((t1(t)+fid1(t))*(t2(t)+fid2(t))*t3(t)), self.times[4], self.times[5])[0]"""
 
     def _draw(self, spacing=1, **kwargs):
         pass

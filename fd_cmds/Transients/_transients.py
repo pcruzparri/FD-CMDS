@@ -53,13 +53,8 @@ def ket_abs(rabi_ik,
             ti,
             tf,
             t):
-    if ti<=t<=tf:
-        return 0.5*rabi_ik*((np.exp(-1J * (omega_kj+omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
-                           / (delta_ij(omega_ij, gamma_ij) - omega - omega_kj)) * pulse(ti, tf, t)
-    elif t:
-        return fid(ket_abs(rabi_ik, omega, omega_kj, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, t-tf)
-    else:
-        return 0
+    return 0.5*rabi_ik*((np.exp(-1J * (omega_kj+omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
+                        / (delta_ij(omega_ij, gamma_ij) - omega - omega_kj)) * pulse(ti, tf, t)
 
 
 def ket_emis(rabi_ik,
@@ -70,13 +65,8 @@ def ket_emis(rabi_ik,
              ti,
              tf,
              t):
-    if ti<=t<=tf:
-        return 0.5*rabi_ik*((np.exp(-1J * (omega_kj-omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
+    return 0.5*rabi_ik*((np.exp(-1J * (omega_kj-omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
                                / (delta_ij(omega_ij, gamma_ij) + omega - omega_kj)) * pulse(ti, tf, t)
-    elif tf<t:
-        return fid(ket_emis(rabi_ik, omega, omega_kj, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, t-tf)
-    else:
-        return 0
 
 
 def bra_abs(rabi_jk,
@@ -87,13 +77,8 @@ def bra_abs(rabi_jk,
             ti,
             tf,
             t):
-    if ti<=t<=tf:
-        return -0.5*rabi_jk*((np.exp(-1J * (omega_ik-omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
+    return -0.5*rabi_jk*((np.exp(-1J * (omega_ik-omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
                            / (delta_ij(omega_ij, gamma_ij) + omega - omega_ik)) * pulse(ti, tf, t)
-    elif tf<t:
-        return fid(bra_abs(rabi_jk, omega, omega_ik, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, t-tf)
-    else:
-        return 0
 
 
 def bra_emis(rabi_jk,
@@ -104,10 +89,5 @@ def bra_emis(rabi_jk,
              ti,
              tf,
              t):
-    if ti<=t<=tf:
-        return -0.5*rabi_jk*((np.exp(-1J * (omega_ik+omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
+    return -0.5*rabi_jk*((np.exp(-1J * (omega_ik+omega) * (t-ti)) - np.exp(-1J * delta_ij(omega_ij, gamma_ij) * (t-ti)))
                            / (delta_ij(omega_ij, gamma_ij) - omega - omega_ik)) * pulse(ti, tf, t)
-    elif tf<t:
-        return fid(bra_emis(rabi_jk, omega, omega_ik, omega_ij, gamma_ij, ti, tf, tf), omega_ij, gamma_ij, t-tf)
-    else:
-        return 0
