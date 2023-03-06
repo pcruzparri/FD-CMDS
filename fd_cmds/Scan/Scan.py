@@ -11,7 +11,7 @@ class Scan:
         def f(point):
             freqs = np.zeros(2)
             freqs[axis], freqs[axis-1] = scan_range[0]+np.diff(scan_range)[0]/npts*point, fixed_at
-            freqs = np.append(freqs, _trans.hztown(self.ExpObj.omegas[2]))
+            freqs = np.append(freqs, _trans.Hz2wn(self.ExpObj.omegas[2]))
             self.ExpObj.set_pulse_freqs(freqs)
             print(point)
             return self.ExpObj.compute()
@@ -42,7 +42,7 @@ class Scan:
         def f(point1, point2):
             w1 = scan_range1[0]+np.diff(scan_range1)[0]/size[0]*point1
             w2 = scan_range2[0]+np.diff(scan_range2)[0]/size[1]*point2
-            self.ExpObj.set_pulse_freqs([w1, w2, _trans.hztown(self.ExpObj.omegas[2])])
+            self.ExpObj.set_pulse_freqs([w1, w2, _trans.Hz2wn(self.ExpObj.omegas[2])])
             print(point1, point2)
             return self.ExpObj.compute()
             

@@ -76,7 +76,7 @@ class Experiment:
     def get_pm(self):
         return self.pm
 
-    def timedparams(self, t, where):
+    def _timedparams(self, t, where):
         if self.times[0] <= t <= self.times[1]:
             t1, fid1 = 1, 0
         elif self.times[1] <= t:
@@ -105,7 +105,7 @@ class Experiment:
         return np.sum(driven, where=where)
 
     def compute(self):
-        t1 = lambda t: self.transitions[0](self.rabis[self.orderings[0]],
+        self.t1 = lambda t: self.transitions[0](self.rabis[self.orderings[0]],
                                            self.pulse_freqs[self.orderings[0]],
                                            0,
                                            self.signs[0]*self.omegas[self.orderings[0]],
@@ -113,48 +113,48 @@ class Experiment:
                                            self.times[0],
                                            self.times[1],
                                            t) * _trans.pulse(self.times[0], self.times[1], t) 
-        fid1 = lambda t: _trans.fid(t1(self.times[1]), 
-                                    self.signs[0]*self.omegas[self.orderings[0]],
-                                    self.gammas[self.orderings[0]], 
-                                    t-self.times[1]) * _trans.Hs(t-self.times[1]) 
+        self.fid1 = lambda t: _trans.fid(self.t1(self.times[1]),
+                                        self.signs[0]*self.omegas[self.orderings[0]],
+                                        self.gammas[self.orderings[0]],
+                                        t-self.times[1]) * _trans.Hs(t-self.times[1])
 
-        t2 = lambda t: self.transitions[1](self.rabis[self.orderings[1]],
-                                           self.timedparams(t, where=[1, 1, 0]),
-                                           self.signs[0]*self.omegas[self.orderings[0]],
-                                           self.signs[0]*self.omegas[self.orderings[0]]
-                                           + self.signs[1]*self.omegas[self.orderings[1]],
-                                           self.gammas[self.orderings[1]],
-                                           self.times[2],
-                                           self.times[3],
-                                           t)
-        fid2 = lambda t: _trans.fid(t2(self.times[3]), 
-                                    self.signs[0]*self.omegas[self.orderings[0]]
-                                    + self.signs[1]*self.omegas[self.orderings[1]],
-                                    self.gammas[self.orderings[1]],
-                                    t-self.times[3]) * _trans.Hs(t-self.times[3]) 
+        self.t2 = lambda t: self.transitions[1](self.rabis[self.orderings[1]],
+                                                self.pulse_freqs[self.orderings[1]],
+                                                self.signs[0]*self.omegas[self.orderings[0]],
+                                                self.signs[0]*self.omegas[self.orderings[0]]
+                                                + self.signs[1]*self.omegas[self.orderings[1]],
+                                                self.gammas[self.orderings[1]],
+                                                self.times[2],
+                                                self.times[3],
+                                                t) * _trans.pulse(self.times[2], self.times[3], t)
+        self.fid2 = lambda t: _trans.fid(self.t2(self.times[3]),
+                                         self.signs[0]*self.omegas[self.orderings[0]]
+                                         + self.signs[1]*self.omegas[self.orderings[1]],
+                                         self.gammas[self.orderings[1]],
+                                         t-self.times[3]) * _trans.Hs(t-self.times[3])
 
-        t3 = lambda t: self.transitions[2](self.rabis[self.orderings[2]],
-                                           self.timedparams(t, where=[1, 1, 1]),
-                                           self.signs[0]*self.omegas[self.orderings[0]]
-                                           + self.signs[1]*self.omegas[self.orderings[1]],
-                                           self.signs[0]*self.omegas[self.orderings[0]]
-                                           + self.signs[1]*self.omegas[self.orderings[1]]
-                                           + self.signs[2]*self.omegas[self.orderings[2]],
-                                           self.gammas[self.orderings[2]],
-                                           self.times[4],
-                                           self.times[5],
-                                           t)
 
+        self.t3 = lambda t: self.transitions[2](self.rabis[self.orderings[2]],
+                                                self.pulse_freqs[self.orderings[2]],
+                                                self.signs[0]*self.omegas[self.orderings[0]]
+                                                + self.signs[1]*self.omegas[self.orderings[1]],
+                                                self.signs[0]*self.omegas[self.orderings[0]]
+                                                + self.signs[1]*self.omegas[self.orderings[1]]
+                                                + self.signs[2]*self.omegas[self.orderings[2]],
+                                                self.gammas[self.orderings[2]],
+                                                self.times[4],
+                                                self.times[5],
+                                                t)
+        return np.real(quadrature(lambda t: (self.t1(t)+self.fid1(t))*(self.t2(t)+self.fid2(t))*self.t3(t) \
+                                  * np.conjugate((self.t1(t)+self.fid1(t))*(self.t2(t)+self.fid2(t))*self.t3(t)),
+                                  self.times[4], self.times[5])[0])
+
+    def draw(self, spacing=1, **kwargs):
         times = np.linspace(self.times[0], self.times[5], int((self.times[5]-self.times[0])*10e15))
-        amps1 = [t1(i)+fid1(i) for i in times]
-        amps21 = [(t1(i)+fid1(i))*(t2(i)+fid2(i)) for i in times]
-        amps321 = [(t1(i)+fid1(i))*(t2(i)+fid2(i))*t3(i) for i in times]
+        amps1 = [self.t1(i)+self.fid1(i) for i in times]
+        amps21 = [(self.t1(i)+self.fid1(i))*(self.t2(i)+self.fid2(i)) for i in times]
+        amps321 = [(self.t1(i)+self.fid1(i))*(self.t2(i)+self.fid2(i))*self.t3(i) for i in times]
         plt.plot(times, amps1, color='k', alpha=0.50)
         plt.plot(times, amps21, color='r', alpha=0.75)
         plt.plot(times, amps321, color='b', alpha=0.75)
         plt.show()
-        """return quadrature(lambda t: (t1(t)+fid1(t))*(t2(t)+fid2(t))*t3(t) \
-                   * np.conjugate((t1(t)+fid1(t))*(t2(t)+fid2(t))*t3(t)), self.times[4], self.times[5])[0]"""
-
-    def _draw(self, spacing=1, **kwargs):
-        pass
